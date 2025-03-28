@@ -3,6 +3,7 @@
     "outDir": "dist",
     "rootDir": "src",
     "moduleResolution": "node",
-    "esModuleInterop": true
+    "esModuleInterop": true,
+    "lib": ["es2015", "dom"]
   }
 }
