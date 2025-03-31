@@ -9,6 +9,7 @@ import Client, {
   txEncode,
   txErrDecode,
 } from "@triton-one/yellowstone-grpc";
+import { PingRequest, SubscribeRequestPing } from "@triton-one/yellowstone-grpc/dist/types/grpc/geyser";
 
 async function main() {
   const args = parseCommandLineArgs();
@@ -56,6 +57,8 @@ async function main() {
       );
       break;
   }
+
+
 }
 
 function parseCommitmentLevel(commitment: string | undefined) {
@@ -70,6 +73,29 @@ function parseCommitmentLevel(commitment: string | undefined) {
 async function subscribeCommand(client: Client, args) {
   // Subscribe for events
   const stream = await client.subscribe();
+
+  setInterval(() => {
+    const request: SubscribeRequest = {
+      accounts: {},
+      slots: {},
+      transactions: {},
+      transactionsStatus: {},
+      entry: {},
+      blocks: {},
+      blocksMeta: {},
+      commitment: parseCommitmentLevel(args.commitment),
+      accountsDataSlice: [],
+      ping: { id: 1 },
+    };
+
+    stream.write(request, (err) => {
+      if (err) {
+        console.error("Error sending periodic ping:", err);
+      } else {
+        console.log("Sent periodic ping");
+      }
+    });
+  }, 2 * 60 * 1000);// ping every 5 minutes;
 
   // Create `error` / `end` handler
   const streamClosed = new Promise<void>((resolve, reject) => {
@@ -108,7 +134,10 @@ async function subscribeCommand(client: Client, args) {
       return;
     }
 
+    // let newCurrTime = new Date();
+
     console.log(new Date(), data.block?.slot);
+    // lastElapsed = newCurrTime;
   });
 
   // Create subscribe request based on provided arguments.
